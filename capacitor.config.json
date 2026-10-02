@@ -1,0 +1,8 @@
+{
+  "appId": "com.alxmobileapps.circuscats",
+  "appName": "Circus Cats",
+  "webDir": "www",
+  "android": {
+    "backgroundColor": "#2a0a12"
+  }
+}
