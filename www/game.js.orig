@@ -358,9 +358,6 @@
   let balls = [], ballTimer = 4;
   const BALL_R = 24, BALL_EXTRA = 140;     // rolling circus ball (from score 20), rolls a bit faster than the rings
   const ballV = () => speed + BALL_EXTRA;
-  const BOUNCE_A = 30, BOUNCE_P = 0.45;      // bouncing pair (from score 40): hop height (px) and seconds per bounce
-  let ballPair = false;
-  const ballH = b => { if (!b.bn) return 0; const u = ((time + b.ph) % BOUNCE_P) / BOUNCE_P; return 4 * BOUNCE_A * u * (1 - u); };
   const dog = { x: 170, y: GY, vy: 0, air: false, jt: 0, h0: 0, v0: 0, holding: false };
   let shopIdx = 0, shopCryT = 0, shopMsg = '', shopMsgT = 0;
 
@@ -427,21 +424,15 @@
     ballTimer -= dt;
     if (ballTimer > 0) return;
     const x = viewW + 60, tb = (x - dogX()) / ballV();
-    const pair = score > 40 && ballPair, tEnd = tb + (pair ? BOUNCE_P : 0);
-    // wait for a moment when no ring is about to reach the dog together with the ball(s)
-    if (rings.some(r => { const tr = (r.x - dogX()) / speed; return tr > -0.5 && tr > tb - 0.8 && tr < tEnd + 0.8; })) return;
-    if (pair) {
-      // TWO BOUNCING BALLS one behind the other, bouncing in step so they reach the dog in the same phase
-      balls.push({ x, r: BALL_R, rot: 0, passed: false, bn: true, ph: 0 });
-      balls.push({ x: x + BOUNCE_P * ballV(), r: BALL_R, rot: 0, passed: false, bn: true, ph: 0 });
-    } else balls.push({ x, r: BALL_R, rot: 0, passed: false });
+    // wait for a moment when no ring is about to reach the dog together with the ball
+    if (rings.some(r => { const tr = (r.x - dogX()) / speed; return tr > -0.5 && Math.abs(tr - tb) < 0.8; })) return;
+    balls.push({ x, r: BALL_R, rot: 0, passed: false });
     ballTimer = rand(3.5, 8);
-    ballPair = Math.random() < 0.4;
   }
 
   function reset() {
     score = 0; speed = 280; dist = 0; newBest = false; runCoins = 0;
-    rings = []; parts = []; tears = []; popups = []; balls = []; ballTimer = rand(2, 5); ballPair = false;
+    rings = []; parts = []; tears = []; popups = []; balls = []; ballTimer = rand(2, 5);
     dog.x = dogX(); dog.y = GY; dog.vy = 0; dog.air = false; dog.holding = false;
     spawnGroup(dog.x + viewW + 120);
   }
@@ -580,7 +571,7 @@
       const cs = dogCircles();
       for (const b of balls) {
         for (const c of cs) {
-          const dx = c.x - b.x, dy = c.y - (GY - b.r - ballH(b)), rr = c.r + b.r - 3;
+          const dx = c.x - b.x, dy = c.y - (GY - b.r), rr = c.r + b.r - 3;
           if (dx * dx + dy * dy < rr * rr) { lastHit = 'ball'; die(); return; }
         }
         if (!b.passed && b.x + b.r < cs[0].x - cs[0].r) {
@@ -643,12 +634,12 @@
     const W = viewW;
     const sw = 56, off = (dist * 0.25) % (sw * 2);
     const top = T();
-    ctx.fillStyle = '#dcecff'; ctx.fillRect(0, top, W, viewH);
-    ctx.fillStyle = '#1f6fd6';
+    ctx.fillStyle = '#f3e3c3'; ctx.fillRect(0, top, W, viewH);
+    ctx.fillStyle = '#b3122e';
     for (let x = -off; x < W + sw * 2; x += sw * 2) ctx.fillRect(x, top, sw, viewH);
     let g = ctx.createLinearGradient(0, top, 0, GY);
-    g.addColorStop(0, 'rgba(4,18,48,0.75)'); g.addColorStop(0.35, 'rgba(4,18,48,0.15)');
-    g.addColorStop(0.8, 'rgba(4,18,48,0.25)'); g.addColorStop(1, 'rgba(4,18,48,0.6)');
+    g.addColorStop(0, 'rgba(40,0,10,0.75)'); g.addColorStop(0.35, 'rgba(40,0,10,0.15)');
+    g.addColorStop(0.8, 'rgba(40,0,10,0.25)'); g.addColorStop(1, 'rgba(40,0,10,0.6)');
     ctx.fillStyle = g; ctx.fillRect(0, top, W, GY - top);
 
     ctx.save(); ctx.globalCompositeOperation = 'lighter';
@@ -663,7 +654,7 @@
     ctx.restore();
 
     const vo = (dist * 0.25) % 80;
-    ctx.fillStyle = '#0d3a85';
+    ctx.fillStyle = '#7a0a1f';
     ctx.fillRect(0, top, W, 22);
     for (let x = -vo - 80; x < W + 80; x += 80) { ctx.beginPath(); ctx.arc(x + 40, top + 22, 40, 0, Math.PI); ctx.fill(); }
     ctx.fillStyle = '#e8b93a';
@@ -681,7 +672,7 @@
     }
 
     const ao = (dist * 0.45) % 34;
-    ctx.fillStyle = 'rgba(5,14,36,0.85)';
+    ctx.fillStyle = 'rgba(30,5,12,0.85)';
     ctx.fillRect(0, GY - 70, W, 30);
     for (let x = -ao - 34, i = 0; x < W + 34; x += 34, i++) {
       const bob = Math.sin(time * 4 + i * 1.7) * 2;
@@ -691,7 +682,7 @@
     }
 
     const co = (dist * 0.7) % 60;
-    ctx.fillStyle = '#1a5cc0'; ctx.fillRect(0, GY - 44, W, 30);
+    ctx.fillStyle = '#c4162f'; ctx.fillRect(0, GY - 44, W, 30);
     ctx.fillStyle = '#e8b93a'; ctx.fillRect(0, GY - 44, W, 4); ctx.fillRect(0, GY - 18, W, 4);
     for (let x = -co - 60; x < W + 60; x += 60) {
       ctx.beginPath(); ctx.moveTo(x + 30, GY - 38); ctx.lineTo(x + 38, GY - 29); ctx.lineTo(x + 30, GY - 20); ctx.lineTo(x + 22, GY - 29); ctx.closePath(); ctx.fill();
@@ -735,8 +726,8 @@
     ctx.restore();
   }
   function drawBall(b) {
-    const hb = ballH(b), y = GY - b.r - hb, sh = 1 - Math.min(0.5, hb / 90);
-    ctx.fillStyle = 'rgba(60,25,5,' + (0.35 * sh) + ')'; ctx.beginPath(); ctx.ellipse(b.x + 3, GY + 3, b.r * 0.95 * sh, 6 * sh, 0, 0, Math.PI * 2); ctx.fill();
+    const y = GY - b.r;
+    ctx.fillStyle = 'rgba(60,25,5,0.35)'; ctx.beginPath(); ctx.ellipse(b.x + 3, GY + 3, b.r * 0.95, 6, 0, 0, Math.PI * 2); ctx.fill();
     ctx.save(); ctx.translate(b.x, y);
     ctx.beginPath(); ctx.arc(0, 0, b.r, 0, Math.PI * 2); ctx.clip();
     ctx.fillStyle = '#fff'; ctx.fillRect(-b.r, -b.r, b.r * 2, b.r * 2);
@@ -749,7 +740,7 @@
     g.addColorStop(0, 'rgba(255,255,255,0.55)'); g.addColorStop(0.45, 'rgba(255,255,255,0)'); g.addColorStop(1, 'rgba(0,0,0,0.3)');
     ctx.fillStyle = g; ctx.fillRect(-b.r, -b.r, b.r * 2, b.r * 2);
     ctx.restore();
-    ctx.lineWidth = 3; ctx.strokeStyle = '#0b2350'; ctx.beginPath(); ctx.arc(b.x, y, b.r, 0, Math.PI * 2); ctx.stroke();
+    ctx.lineWidth = 3; ctx.strokeStyle = '#3a0712'; ctx.beginPath(); ctx.arc(b.x, y, b.r, 0, Math.PI * 2); ctx.stroke();
   }
   function drawRingBack(r) {
     const gc = r.mv ? '90,200,255' : '255,120,0';   // moving rings glow blue
@@ -1272,7 +1263,7 @@
 
   // ---------- Drawing: UI ----------
   const FONT = '"Arial Rounded MT Bold", "Trebuchet MS", "Segoe UI", Roboto, sans-serif';
-  function text(str, x, y, size, col = '#fff', align = 'center', stroke = '#0b2350') {
+  function text(str, x, y, size, col = '#fff', align = 'center', stroke = '#3a0712') {
     ctx.font = `900 ${size}px ${FONT}`;
     ctx.textAlign = align; ctx.textBaseline = 'middle';
     ctx.lineJoin = 'round'; ctx.lineWidth = Math.max(3, size / 6); ctx.strokeStyle = stroke;
@@ -1294,9 +1285,9 @@
   function button(label, x, y, w, h, on, opts = {}) {
     const disabled = !!opts.disabled;
     ctx.fillStyle = 'rgba(0,0,0,0.25)'; rrect(x, y + 4, w, h, h / 2); ctx.fill();
-    ctx.fillStyle = disabled ? '#5c6b84' : (opts.color || '#e8b93a'); rrect(x, y, w, h, h / 2); ctx.fill();
-    ctx.strokeStyle = disabled ? '#3d4a60' : '#fff3c4'; ctx.lineWidth = 2.5; rrect(x, y, w, h, h / 2); ctx.stroke();
-    text(label, x + w / 2 + (opts.coin ? 12 : 0), y + h / 2 + 1, opts.size || 18, disabled ? '#d3dbe8' : '#0b2350', 'center', disabled ? '#3d4a60' : '#fff3c4');
+    ctx.fillStyle = disabled ? '#6b5a5e' : (opts.color || '#e8b93a'); rrect(x, y, w, h, h / 2); ctx.fill();
+    ctx.strokeStyle = disabled ? '#4d3e42' : '#fff3c4'; ctx.lineWidth = 2.5; rrect(x, y, w, h, h / 2); ctx.stroke();
+    text(label, x + w / 2 + (opts.coin ? 12 : 0), y + h / 2 + 1, opts.size || 18, disabled ? '#d9cfd1' : '#3a0712', 'center', disabled ? '#4d3e42' : '#fff3c4');
     if (opts.coin) { ctx.font = `900 ${opts.size || 18}px ${FONT}`; coinIcon(x + w / 2 - ctx.measureText(label).width / 2 - 2, y + h / 2, 9); }
     btn(x, y, w, h, () => { click(); on(); });
   }
@@ -1327,14 +1318,14 @@
   }
   function panel(w, h, y) {
     const x = viewW / 2 - w / 2; y = y === undefined ? MID() - h / 2 - 20 : y;
-    ctx.fillStyle = 'rgba(7,24,62,0.86)'; ctx.strokeStyle = '#e8b93a'; ctx.lineWidth = 4;
+    ctx.fillStyle = 'rgba(40,5,15,0.82)'; ctx.strokeStyle = '#e8b93a'; ctx.lineWidth = 4;
     rrect(x, y, w, h, 22); ctx.fill(); ctx.stroke();
     return { x, y };
   }
 
   function drawShop() {
     const top = T(), m = MID();
-    ctx.fillStyle = 'rgba(4,16,44,0.55)'; ctx.fillRect(0, top, viewW, viewH);
+    ctx.fillStyle = 'rgba(30,4,12,0.55)'; ctx.fillRect(0, top, viewW, viewH);
     const cx = viewW / 2, b = BREEDS[shopIdx];
     const isOwned = owned.includes(b.id), inUse = selectedId === b.id;
     button('BACK', 16, top + 16, 96, 40, () => { state = 'title'; }, { size: 16 });
@@ -1355,7 +1346,7 @@
       ctx.restore();
       if (!isOwned) { // lock badge
         const lx = cx + 100, ly = sy - 170;
-        ctx.fillStyle = 'rgba(4,16,44,0.8)'; ctx.beginPath(); ctx.arc(lx, ly, 20, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = 'rgba(30,4,12,0.8)'; ctx.beginPath(); ctx.arc(lx, ly, 20, 0, Math.PI * 2); ctx.fill();
         ctx.strokeStyle = '#ffe38a'; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(lx, ly - 4, 7, Math.PI, 0); ctx.stroke();
         ctx.fillStyle = '#ffe38a'; rrect(lx - 10, ly - 4, 20, 14, 3); ctx.fill();
       }
@@ -1435,9 +1426,9 @@
     const S = 1080, off = document.createElement('canvas'); off.width = off.height = S;
     const saved = ctx; ctx = off.getContext('2d');
     try {
-      ctx.fillStyle = '#dcecff'; ctx.fillRect(0, 0, S, S);
-      ctx.fillStyle = '#1f6fd6'; for (let x = 0; x < S; x += 144) ctx.fillRect(x, 0, 72, S);
-      const g = ctx.createLinearGradient(0, 0, 0, S); g.addColorStop(0, 'rgba(4,18,48,0.75)'); g.addColorStop(0.5, 'rgba(4,18,48,0.2)'); g.addColorStop(1, 'rgba(4,18,48,0.7)');
+      ctx.fillStyle = '#f3e3c3'; ctx.fillRect(0, 0, S, S);
+      ctx.fillStyle = '#b3122e'; for (let x = 0; x < S; x += 144) ctx.fillRect(x, 0, 72, S);
+      const g = ctx.createLinearGradient(0, 0, 0, S); g.addColorStop(0, 'rgba(40,0,10,0.75)'); g.addColorStop(0.5, 'rgba(40,0,10,0.2)'); g.addColorStop(1, 'rgba(40,0,10,0.7)');
       ctx.fillStyle = g; ctx.fillRect(0, 0, S, S);
       ctx.fillStyle = '#c98f4c'; ctx.fillRect(0, 800, S, 280);
       text('CIRCUS CATS', S / 2, 120, 110, '#ffb000');
@@ -1476,7 +1467,7 @@
   function render() {
     buttons = [];
     ctx.setTransform(1, 0, 0, 1, 0, 0);
-    ctx.fillStyle = '#0a1f45'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = '#2a0a12'; ctx.fillRect(0, 0, canvas.width, canvas.height);
     ctx.setTransform(scale, 0, 0, scale, 0, offY * scale);
     drawBackground();
     const b = curBreed();

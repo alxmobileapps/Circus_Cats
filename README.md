@@ -3,22 +3,18 @@
 A one-tap circus game (same gameplay as Circus Dogs). The cat runs on its own. **Quick tap = small hop, hold longer = higher jump.**
 Rings come in different sizes, heights and spacing, and they get smaller as you score.
 Sometimes two low rings come very close together; after 10 rings, twin rings appear (one jump through both = +2);
-after 20 a circus ball rolls in; after 30 some rings move up and down. Touch the flames, jump over the ring,
+after 20 a circus ball rolls in; after 30 some rings move up and down; after 40 two balls can come bouncing together. Touch the flames, jump over the ring,
 or run into its stand and the cat cries. Game over, then try again.
 
 - Every cat makes its own sound on each jump (meow, "mrrp" chirp, snarl, or a big-cat roar) and cries on game over.
+- Blue circus-tent theme.
 - Portrait game with an **AdMob banner at the top** (see *Ads* below).
 - Circus march background music (music button and sound button in the top-right).
 - **Cat Shop:** each ring you pass = 1 coin. Spend coins to unlock more cats. **50 cats**:
-  - **House cats** (+20 coins each): Maine Coon (free), Persian 20, Siamese 40, Ragdoll 60, British Shorthair 80,
-    Bengal 100, Scottish Fold 120, Sphynx 140, Russian Blue 160, American Shorthair 180, Norwegian Forest Cat 200,
-    Siberian 220, Birman 240, Abyssinian 260, Turkish Angora 280, Exotic Shorthair 300, Oriental Shorthair 320,
-    Devon Rex 340, Burmese 360, Himalayan 380, Manx 400, Cornish Rex 420, Tonkinese 440, Somali 460,
-    American Curl 480, Egyptian Mau 500, Japanese Bobtail 520, Ocicat 540, Bombay 560, Balinese 580.
-  - **Big & Wild Cats** (+50 coins each): Tiger 630, Lion 680, Leopard 730, Cheetah 780, Jaguar 830,
-    Snow Leopard 880, Black Panther 930, Cougar / Mountain Lion 980, Caracal 1030, Serval 1080, Lynx 1130,
-    Ocelot 1180, Clouded Leopard 1230, Fishing Cat 1280, Pallas's Cat 1330, Sand Cat 1380, Jungle Cat 1430,
-    Geoffroy's Cat 1480, Margay 1530, Rusty-Spotted Cat 1580.
+  - **House cats**: Maine Coon is free, then the first shop cat costs 100 coins and each cat costs 20 more:
+    Persian 100, Siamese 120, Ragdoll 140 ... Bombay 640, Balinese 660 (30 house cats).
+  - **Big & Wild Cats** (each 50 coins more): Tiger 710, Lion 760, Leopard 810, Cheetah 860 ... Margay 1610,
+    Rusty-Spotted Cat 1660 (20 wild cats). Full list and prices in `www/breeds.js`.
 - Share your score from the Game Over card (phone share menu with a score picture).
 - Best score, coins and unlocked cats are saved on the phone.
 
@@ -35,15 +31,11 @@ circus ruffle colour) and voice. To use **real recordings or your own art** inst
 Any file left as `null` (or that fails to load) falls back to the built-in sound or drawing.
 Every cat uses the same hitbox size, so no cat is easier than another.
 
-## Ads (AdMob) — needs your own ids
+## Ads (AdMob)
 
-Settings are in **`www/ads-config.js`**. Circus Cats needs **its own AdMob app** (ids from Circus Dogs can't be reused):
-
-1. AdMob → **Apps → Add app → Android → "Circus Cats"**
-2. Create a **Banner** ad unit
-3. Paste the App ID and Banner ID into `www/ads-config.js` and set `testing: false`
-
-Until then the file uses Google's official test ids. The **debug APK always shows Google test ads** so you can play it safely.
+Settings are in **`www/ads-config.js`** (real Circus Cats AdMob ids). The build copies the App ID into
+the Android manifest. The **debug APK always shows Google test ads** so you can play it safely;
+the **release AAB/APK uses the real ads**.
 
 ## How the Android app is built
 

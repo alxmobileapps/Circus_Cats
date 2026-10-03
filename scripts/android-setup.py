@@ -218,7 +218,7 @@ edit("android/app/build.gradle", lambda s: re.sub(r'versionName "[^"]*"', f'vers
 # 5) App icons from resources/app-icon.png (square artwork, 1024x1024)
 from PIL import Image, ImageDraw
 art = Image.open("resources/app-icon.png").convert("RGBA")
-BG = (222, 6, 16, 255)   # red behind the artwork on adaptive icons
+BG = (0, 86, 213, 255)    # blue behind the artwork on adaptive icons
 
 dens = {"mdpi": 1, "hdpi": 1.5, "xhdpi": 2, "xxhdpi": 3, "xxxhdpi": 4}
 for d, m in dens.items():
