@@ -1580,6 +1580,8 @@
     get state() { return state; }, get time() { return time; }, get speed() { return speed; }, get lastHit() { return lastHit; }, get score() { return score; }, set score(v) { score = v; speed = speedFor(v); },
     get rings() { return rings; }, get balls() { return balls; }, get coins() { return coins; }, set coins(v) { coins = v; }, get buttons() { return buttons; },
     get shopIdx() { return shopIdx; }, get hit() { return hitOffsets(curBreed()); }, select: id => { if (!owned.includes(id)) owned.push(id); selectedId = id; }, set shopIdx(v) { shopIdx = v; }, dog, press: () => onPress(-1, -1), release,
-    tap: (x, y) => onPress(x * scale, (y + offY) * scale), openShop, shareImage: () => shareImage(), cryPreview: () => { shopCryT = 99; }, setTime: v => { time = v; }, voice: id => { ensureAudio(); meow(breedById(id)); cry(breedById(id)); }
+    tap: (x, y) => onPress(x * scale, (y + offY) * scale), openShop, shareImage: () => shareImage(), cryPreview: () => { shopCryT = 99; }, setTime: v => { time = v; }, voice: id => { ensureAudio(); meow(breedById(id)); cry(breedById(id)); },
+    // draws game art onto another canvas (used to make store graphics)
+    paint: (c2, fn) => { const sv = ctx; ctx = c2; try { fn({ cat: (id, x, y, mode, vy) => drawCat(breedById(id), x, y, mode, vy || 0), cry: (id, x, y, k) => drawCryFace(breedById(id), x, y, k), ringBack: drawRingBack, ringFront: drawRingFront, ball: drawBall, text }); } finally { ctx = sv; } }
   };
 })();

@@ -1,0 +1,37 @@
+<!doctype html><html><body style="margin:0"><canvas id="game" style="position:fixed;left:-9999px;width:500px;height:900px"></canvas>
+<canvas id="f" width="1024" height="500"></canvas>
+<script src="../www/breeds.js"></script><script src="../www/game.js"></script>
+<script>
+const f=document.getElementById('f'), x=f.getContext('2d');
+// curtains
+for(let i=0;i<20;i++){x.fillStyle=i%2?'#dcecff':'#1f6fd6';x.fillRect(i*56,0,56,500);}
+let g=x.createLinearGradient(0,0,0,500);g.addColorStop(0,'rgba(4,18,48,0.75)');g.addColorStop(0.45,'rgba(4,18,48,0.1)');g.addColorStop(1,'rgba(4,18,48,0.55)');x.fillStyle=g;x.fillRect(0,0,1024,500);
+x.save();x.globalCompositeOperation='lighter';
+[[180,260],[760,700]].forEach(([s,t])=>{const lg=x.createLinearGradient(0,0,0,430);lg.addColorStop(0,'rgba(255,250,210,0.35)');lg.addColorStop(1,'rgba(255,250,210,0.04)');x.fillStyle=lg;x.beginPath();x.moveTo(s-14,0);x.lineTo(s+14,0);x.lineTo(t+150,430);x.lineTo(t-150,430);x.fill();});
+x.restore();
+// valance
+x.fillStyle='#0d3a85';x.fillRect(0,0,1024,24);for(let i=0;i<14;i++){x.beginPath();x.arc(i*80+40,24,40,0,Math.PI);x.fill();}
+x.fillStyle='#e8b93a';for(let i=0;i<14;i++){x.beginPath();x.arc(i*80+40,66,5,0,7);x.fill();}
+// barrier + floor
+x.fillStyle='#1a5cc0';x.fillRect(0,388,1024,34);x.fillStyle='#e8b93a';x.fillRect(0,388,1024,5);x.fillRect(0,416,1024,5);
+for(let i=0;i<18;i++){const cx=i*60+30;x.beginPath();x.moveTo(cx,396);x.lineTo(cx+8,405);x.lineTo(cx,414);x.lineTo(cx-8,405);x.fill();}
+g=x.createLinearGradient(0,420,0,500);g.addColorStop(0,'#c98f4c');g.addColorStop(1,'#8a5a2b');x.fillStyle=g;x.fillRect(0,420,1024,80);
+const GY=385;
+__pfj.setTime(1.37);
+__pfj.paint(x, a=>{
+  // title on the left
+  a.text('CIRCUS', 225, 175, 92, '#fff'); a.text('CATS', 225, 268, 92, '#ffb000');
+  a.text('50 cats  •  rings of fire!', 225, 345, 30, '#fff3a0');
+  x.save(); x.translate(0,432); x.scale(2,2); x.translate(0,-GY);
+  const ring={x:330,cy:GY-112,R:52,rx:52*0.3,seed:3};
+  // shadows
+  x.fillStyle='rgba(60,25,5,0.35)';[[262,26],[438,24],[316,18]].forEach(([cx,w])=>{x.beginPath();x.ellipse(cx,GY+3,w,5,0,0,7);x.fill();});
+  a.ringBack(ring);
+  a.cat('mainecoon',255,GY,'run');
+  a.cat('lion',430,GY,'run');
+  a.cat('tiger',ring.x-14,ring.cy+30,'jump',-150);
+  a.ringFront(ring);
+  x.restore();
+});
+document.title='done';
+</script></body></html>
