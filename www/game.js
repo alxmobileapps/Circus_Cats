@@ -85,7 +85,7 @@
         for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
         sfxBus = actx.createGain(); sfxBus.gain.value = 1; sfxBus.connect(actx.destination);
         musicBus = actx.createGain(); musicBus.gain.value = musicOn ? MUSIC_VOL : 0; musicBus.connect(actx.destination);
-        preloadBreed(curBreed());
+        preloadBreed(curBreed()); preloadCatSounds();
       }
       if (actx.state === 'suspended') actx.resume();
     } catch (e) { actx = null; }
@@ -105,9 +105,20 @@
     return buffers[url] || null;
   }
   function preloadBreed(b) { if (b.files) { loadSound(b.files.meow || b.files.bark); loadSound(b.files.cry); breedImage(b); } }
-  function playBuffer(buf, vol = 1) {
-    const s = actx.createBufferSource(); s.buffer = buf;
+  function playBuffer(buf, vol = 1, rate = 1) {
+    const s = actx.createBufferSource(); s.buffer = buf; s.playbackRate.value = rate;
     const g = actx.createGain(); g.gain.value = vol; s.connect(g); g.connect(sfxBus); s.start();
+  }
+  // Built-in cat voices (www/sounds/cat). Each breed plays them at its own pitch (voice.pitch).
+  const CAT_SND = {
+    meow: ['meow-1', 'meow-2', 'meow-3'], rasp: ['meow-rasp'], chirp: ['chirp'], roar: ['roar'], saw: ['roar-saw'],
+    snarl: ['snarl'], cry: ['cry'], yowl: ['cry-yowl'], bigcry: ['cry-big']
+  };
+  const catUrl = n => 'sounds/cat/' + n + '.wav';
+  function preloadCatSounds() { Object.values(CAT_SND).forEach(l => l.forEach(n => loadSound(catUrl(n)))); }
+  function catSample(kind) {
+    const list = CAT_SND[kind] || CAT_SND.meow;
+    return loadSound(catUrl(list[Math.floor(Math.random() * list.length)])) || loadSound(catUrl(list[0]));
   }
 
   function noiseBurst(t, dur, freq, q, vol, type = 'bandpass', dest = sfxBus) {
@@ -244,7 +255,11 @@
     if (!sfxOn || !actx) return;
     const f = b.files || {}, buf = loadSound(f.meow || f.bark);
     if (buf) { playBuffer(buf); return; }
-    const t = actx.currentTime + 0.005, v = b.voice || {};
+    const v = b.voice || {};
+    const kind = v.roar ? (v.saw ? 'saw' : 'roar') : v.growl ? 'snarl' : v.chirp ? 'chirp' : (v.rasp || 0) >= 0.5 ? 'rasp' : 'meow';
+    const sb = catSample(kind);
+    if (sb) { playBuffer(sb, kind === 'roar' || kind === 'saw' ? 0.95 : 0.8, (v.pitch || 1) * (1 + (Math.random() - 0.5) * 0.08)); return; }
+    const t = actx.currentTime + 0.005;
     if (v.roar) synthRoar(v, t);
     else if (v.growl) synthGrowl(v, t);
     else if (v.chirp) synthChirp(v, t);
@@ -256,7 +271,10 @@
     if (withPoof) noiseBurst(t0, 0.12, 900, 1.2, 0.35, 'lowpass');
     const buf = loadSound(b.files && b.files.cry);
     if (buf) { playBuffer(buf); return; }
-    synthCry(b.voice || {}, t0);
+    const v = b.voice || {}, kind = v.roar || v.growl ? 'bigcry' : v.yowl ? 'yowl' : 'cry';
+    const sb = catSample(kind);
+    if (sb) { playBuffer(sb, 0.85, kind === 'bigcry' ? Math.min(1.25, Math.max(0.85, v.pitch || 1)) : (v.cryPitch || v.pitch || 1)); return; }
+    synthCry(v, t0);
   }
   function ding() {
     if (!sfxOn || !actx) return;
@@ -1574,6 +1592,7 @@
   }
   reset(); rings = [];
   requestAnimationFrame(frame);
+  ensureAudio();   // create audio early (stays silent until the first tap) so the cat sounds are loaded in time
 
   // test hook (harmless in production)
   window.__pfj = {
