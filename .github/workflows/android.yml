@@ -90,3 +90,4 @@ jobs:
         with:
           name: circus-cats-android
           path: dist/
+          retention-days: 3   # auto-delete after 3 days so the free Actions storage never fills up

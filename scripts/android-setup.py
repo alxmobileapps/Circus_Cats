@@ -203,9 +203,10 @@ public class AppSharePlugin extends Plugin {
 }
 '''.replace("APP_ID_HERE", APP_ID))
 
-# 3c) Google Play requires targeting API level 36
+# 3c) Google Play requires targeting API level 36; Play automatic protection needs minSdk 24 or higher
 vg = pathlib.Path("android/variables.gradle")
 edit(vg, lambda t: re.sub(r"(targetSdkVersion\s*=\s*)\d+", r"\g<1>36", re.sub(r"(compileSdkVersion\s*=\s*)\d+", r"\g<1>36", t)))
+edit(vg, lambda t: re.sub(r"(minSdkVersion\s*=\s*)\d+", r"\g<1>24", t))
 gp = pathlib.Path("android/gradle.properties")
 gp.write_text(gp.read_text().rstrip("\n") + "\nandroid.suppressUnsupportedCompileSdk=36\n")
 print(vg.read_text())
