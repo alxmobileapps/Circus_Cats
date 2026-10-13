@@ -639,7 +639,7 @@
         if (dog.y >= GY) { dog.y = GY; dog.vy = 0; }
       }
       dog.air = false;
-      if (state === 'dying' && overT > 0.35 && dog.y >= GY) state = 'over';
+      if (state === 'dying' && overT > 0.35 && dog.y >= GY) { state = 'over'; nextPromo(); }
       if (Math.random() < dt * 7) {
         const side = Math.random() < 0.5 ? 0 : 1;
         tears.push({ x: dog.x + 30 + side * 3, y: dog.y - 20, vx: rand(-40, 60), vy: rand(-80, -20), life: 1.2 });
@@ -1488,6 +1488,145 @@
     if (navigator.share) { try { await navigator.share({ title: 'Circus Cats', text, url: STORE_URL }); return; } catch (e) { /* cancelled */ } }
     try { await navigator.clipboard.writeText(text + ' ' + STORE_URL); flashOver('Copied! Paste it anywhere.'); } catch (e) { flashOver('Sharing is not available here'); }
   }
+
+  // ---------- "More games" cross-promo card (game over screen) ----------
+  // Shows Circus Dogs and Circus Fish in turn, above the Game Over card. Tapping it opens the
+  // game's Play Store page. Clearly marked as an ad (Google Play Families policy).
+  const IS_IOS = !!(window.Capacitor && window.Capacitor.getPlatform && window.Capacitor.getPlatform() === 'ios');
+  const PROMOS = [
+    { name: 'CIRCUS DOGS', url: 'https://play.google.com/store/apps/details?id=com.alxmobileapps.circusdogs',
+      bg1: '#b3122e', bg2: '#f3e3c3', animal: 'dog' },
+    { name: 'CIRCUS FISH', url: 'https://play.google.com/store/apps/details?id=com.alxmobileapps.circusfish',
+      bg1: '#2f7a5a', bg2: '#d9f2e8', animal: 'fish' },
+  ];
+  let promoIdx = -1, promoHidden = false;
+  function nextPromo() { promoIdx = (promoIdx + 1) % PROMOS.length; promoHidden = false; }
+  function drawMiniDog(x, y, sc, jump){
+    // cartoon side view facing right, feet on y; big head = cute
+    ctx.save(); ctx.translate(x, y); ctx.scale(sc, sc);
+    const run = jump ? 0 : Math.sin(time*16);
+    const legA = jump ? 0.9 : run*0.6, legB = jump ? -0.7 : -run*0.6;
+    ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    {
+      // white poodle with a pink bow, like the Circus Dogs star
+      const W = '#fdfbf8', S = '#e3d8ce', O = '#8a7a70';
+      const puff = (px, py, r, c = W) => { ctx.fillStyle = c; ctx.beginPath(); ctx.arc(px, py, r, 0, Math.PI*2); ctx.fill(); ctx.strokeStyle = O; ctx.lineWidth = 0.8; ctx.stroke(); };
+      // legs (thin, with pom feet)
+      [[-9, legB, S], [8, legA, S], [-6, legA, W], [11, legB, W]].forEach(([lx, a, c]) => {
+        const fx = lx + Math.sin(a)*7, fy = -1 - Math.max(0, Math.cos(a))*0;
+        ctx.strokeStyle = O; ctx.lineWidth = 3.4; ctx.beginPath(); ctx.moveTo(lx, -13); ctx.lineTo(fx, fy - 2); ctx.stroke();
+        ctx.strokeStyle = c; ctx.lineWidth = 2.2; ctx.beginPath(); ctx.moveTo(lx, -13); ctx.lineTo(fx, fy - 2); ctx.stroke();
+        puff(fx, fy - 2, 2.8, c);
+      });
+      // pom tail
+      ctx.strokeStyle = O; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(-12, -18); ctx.lineTo(-17, -27); ctx.stroke();
+      puff(-18, -29, 4.2);
+      // fluffy body
+      puff(-7, -18, 7); puff(1, -18, 7.5); puff(8, -20, 7);
+      // head: round fluffy top-knot, long snout, black nose, droopy fluffy ears
+      puff(15, -30, 7.5);
+      puff(14, -38, 5.5);
+      ctx.fillStyle = W; ctx.beginPath(); ctx.ellipse(23, -27, 6.5, 3.6, 0.15, 0, Math.PI*2); ctx.fill(); ctx.strokeStyle = O; ctx.lineWidth = 0.8; ctx.stroke();
+      ctx.fillStyle = '#1a1010'; ctx.beginPath(); ctx.arc(29, -27.5, 2, 0, Math.PI*2); ctx.fill();
+      ctx.fillStyle = '#ff7a8a'; ctx.beginPath(); ctx.ellipse(25, -23.6, 2.4, 1.5, 0.2, 0, Math.PI); ctx.fill();   // tongue
+      puff(11, -26, 4.2, S); puff(10.5, -21.5, 3.6, S);                                  // ear
+      ctx.fillStyle = '#1a1010'; ctx.beginPath(); ctx.arc(18.5, -31, 1.5, 0, Math.PI*2); ctx.fill();
+      ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(19, -31.5, 0.5, 0, Math.PI*2); ctx.fill();
+      // pink bow
+      ctx.fillStyle = '#ff5c9a';
+      ctx.beginPath(); ctx.moveTo(12, -43); ctx.lineTo(8, -46); ctx.lineTo(8, -40); ctx.closePath(); ctx.fill();
+      ctx.beginPath(); ctx.moveTo(12, -43); ctx.lineTo(16, -46); ctx.lineTo(16, -40); ctx.closePath(); ctx.fill();
+      ctx.beginPath(); ctx.arc(12, -43, 1.6, 0, Math.PI*2); ctx.fill();
+    }
+    ctx.restore();
+  }
+  // little clownfish, side view facing right, centred on (x, y)
+  function drawMiniFish(x, y, sc, ang) {
+    ctx.save(); ctx.translate(x, y); ctx.rotate(ang); ctx.scale(sc, sc);
+    const O = '#7a2e08', C = '#ff7a1a', Wt = '#fffaf2';
+    const wig = Math.sin(time * 18) * 2;
+    ctx.lineJoin = 'round';
+    ctx.fillStyle = C; ctx.strokeStyle = O; ctx.lineWidth = 1.2;
+    ctx.beginPath(); ctx.moveTo(-9, 0); ctx.lineTo(-17, -7 + wig); ctx.lineTo(-17, 7 + wig); ctx.closePath(); ctx.fill(); ctx.stroke();   // tail
+    ctx.beginPath(); ctx.moveTo(-3, -6); ctx.quadraticCurveTo(2, -13, 7, -6); ctx.closePath(); ctx.fill(); ctx.stroke();               // fin
+    ctx.beginPath(); ctx.ellipse(0, 0, 12, 7.5, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    ctx.save(); ctx.beginPath(); ctx.ellipse(0, 0, 12, 7.5, 0, 0, Math.PI * 2); ctx.clip();
+    ctx.fillStyle = Wt; [-5, 4].forEach(bx => { ctx.fillRect(bx - 1.6, -9, 3.2, 18); });
+    ctx.strokeStyle = '#1a1010'; ctx.lineWidth = 0.8; [-5, 4].forEach(bx => { ctx.strokeRect(bx - 1.6, -9, 3.2, 18); });
+    ctx.restore();
+    ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(7.5, -1.5, 2.3, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#1a1010'; ctx.beginPath(); ctx.arc(8, -1.5, 1.3, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = O; ctx.lineWidth = 0.9; ctx.beginPath(); ctx.arc(10, 2, 1.6, 0.2, Math.PI * 0.8); ctx.stroke();
+    ctx.restore();
+  }
+  function miniTank(cx, gy, w, h) {
+    ctx.fillStyle = 'rgba(120,200,235,0.55)'; ctx.fillRect(cx - w / 2, gy - h * 0.8, w, h * 0.8);
+    ctx.strokeStyle = 'rgba(255,255,255,0.9)'; ctx.lineWidth = 2; ctx.strokeRect(cx - w / 2, gy - h, w, h);
+    ctx.fillStyle = '#6b4a2a'; ctx.fillRect(cx - w / 2 - 2, gy - 2, w + 4, 4);
+  }
+  function drawPromo(alpha) {
+    if (promoHidden || promoIdx < 0 || IS_IOS) return;
+    const pr = PROMOS[promoIdx];
+    const w = 210, h = 158, x = viewW / 2 - w / 2, y = T() + 84 + Math.sin(time * 2.2) * 3;   // gentle float
+    ctx.save(); ctx.globalAlpha = alpha;
+    // card
+    ctx.fillStyle = 'rgba(0,0,0,0.28)'; rrect(x + 3, y + 6, w, h, 16); ctx.fill();
+    ctx.fillStyle = '#fffaf0'; rrect(x, y, w, h, 16); ctx.fill();
+    ctx.strokeStyle = '#ffc51f'; ctx.lineWidth = 3; rrect(x, y, w, h, 16); ctx.stroke();
+    // mini game scene
+    const sx = x + 8, sy = y + 26, sw = w - 16, sh = 78;
+    ctx.save(); rrect(sx, sy, sw, sh, 10); ctx.clip();
+    ctx.fillStyle = pr.bg2; ctx.fillRect(sx, sy, sw, sh);
+    ctx.fillStyle = pr.bg1; for (let k = 0; k < sw; k += 28) ctx.fillRect(sx + k + ((time * 20) % 28) - 28, sy, 14, sh);
+    ctx.fillStyle = 'rgba(0,0,0,0.25)'; ctx.fillRect(sx, sy, sw, sh);
+    ctx.fillStyle = '#c98f4c'; ctx.fillRect(sx, sy + sh - 14, sw, 14);
+    const ph = (time % 1.6) / 1.6, rx = sx + sw * 0.55, gy = sy + sh - 14;
+    // ring of fire
+    const ry = gy - 36;
+    const ring = () => {
+      ctx.strokeStyle = '#d8a64a'; ctx.lineWidth = 3; ctx.beginPath(); ctx.ellipse(rx, ry, 5, 19, 0, 0, Math.PI * 2); ctx.stroke();
+      for (let k = 0; k < 12; k++) { const a = k / 12 * Math.PI * 2, f = 0.6 + 0.4 * Math.sin(time * 17 + k * 2);
+        ctx.fillStyle = k % 2 ? 'rgba(255,200,60,0.95)' : 'rgba(255,110,20,0.95)';
+        ctx.beginPath(); ctx.arc(rx + Math.cos(a) * 5, ry + Math.sin(a) * 19 - 2, 2.6 * f + 1, 0, Math.PI * 2); ctx.fill(); }
+      ctx.fillStyle = '#4a3a2a'; ctx.fillRect(rx - 1.5, ry + 19, 3, gy - ry - 19);
+    };
+    if (pr.animal === 'fish') {
+      // fish leaps out of one tank, through the ring, into the next tank
+      const t1 = sx + 30, t2 = sx + sw - 30;
+      ring(); miniTank(t1, gy, 40, 26); miniTank(t2, gy, 40, 26);
+      const u = Math.min(1, ph / 0.75), fx = t1 + (t2 - t1) * u, fy = gy - 14 - Math.sin(u * Math.PI) * 26;
+      const ang = u >= 1 ? 0 : -Math.cos(u * Math.PI) * 0.7;
+      drawMiniFish(u >= 1 ? t2 + Math.sin(time * 4) * 6 : fx, u >= 1 ? gy - 12 : fy, 0.85, ang);
+    } else {
+      ring();
+      // dog runs in and jumps through the ring
+      const ax = sx - 20 + ph * (sw + 40), jt = (ax - (rx - 45)) / 90;
+      const jy = jt > 0 && jt < 1 ? Math.sin(jt * Math.PI) * 34 : 0;
+      drawMiniDog(ax, gy - jy + 2, 1.0, jy > 0);
+    }
+    ctx.restore();
+    // labels
+    ctx.fillStyle = '#5a4a50'; rrect(x + 8, y + 7, 26, 14, 4); ctx.fill();
+    ctx.font = `900 9px ${FONT}`; ctx.fillStyle = '#fff'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('AD', x + 21, y + 14.5);
+    ctx.font = `900 11px ${FONT}`; ctx.fillStyle = '#5a4a50'; ctx.textAlign = 'left'; ctx.fillText('You might also like', x + 40, y + 14.5);
+    text(pr.name, x + 70, y + 126, 17, '#ffc51f', 'center', '#3a2a10');
+    // PLAY pill
+    const bx = x + 134, by = y + 112, bw = 66, bh = 30;
+    ctx.fillStyle = '#7fd67a'; rrect(bx, by, bw, bh, bh / 2); ctx.fill();
+    ctx.strokeStyle = '#2e6b2a'; ctx.lineWidth = 2; rrect(bx, by, bw, bh, bh / 2); ctx.stroke();
+    text('PLAY', bx + bw / 2, by + bh / 2 + 1, 15, '#1d3b1a', 'center', '#e8ffe4');
+    // close
+    const cxx = x + w - 4, cyy = y + 4;
+    ctx.fillStyle = 'rgba(40,30,30,0.85)'; ctx.beginPath(); ctx.arc(cxx, cyy, 11, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = '#fff'; ctx.lineWidth = 2.2; ctx.beginPath();
+    ctx.moveTo(cxx - 4, cyy - 4); ctx.lineTo(cxx + 4, cyy + 4); ctx.moveTo(cxx + 4, cyy - 4); ctx.lineTo(cxx - 4, cyy + 4); ctx.stroke();
+    ctx.restore();
+    if (alpha > 0.5) {
+      btn(x, y, w, h, () => { click(); openLink(pr.url); });
+      btn(cxx - 20, cyy - 20, 40, 40, () => { click(); promoHidden = true; });   // added last = checked first
+    }
+  }
+
   let overMsg = '', overMsgT = 0;
   function flashOver(m) { overMsg = m; overMsgT = 2.5; }
 
@@ -1560,7 +1699,7 @@
     }
     if (state === 'over') {
       const k = Math.min(1, overT / 0.35), e = 1 - Math.pow(1 - k, 3);
-      const pc = MID() - 60;
+      const pc = Math.max(MID() - 60, T() + 84 + 158 + 18 + 150);   // leaves room for the promo card above
       ctx.save(); ctx.translate(viewW / 2, pc); ctx.scale(0.7 + 0.3 * e, 0.7 + 0.3 * e); ctx.translate(-viewW / 2, -pc);
       ctx.globalAlpha = e;
       const p = panel(480, 316, pc - 150);
@@ -1578,6 +1717,7 @@
         button('SHARE YOUR SCORE', viewW / 2 - 150, p.y + 254, 300, 46, shareScore, { size: 18, color: '#6f9cf0' });
         if (overMsgT > 0) text(overMsg, viewW / 2, p.y + 330, 16, '#fff3a0');
       }
+      drawPromo(Math.max(0, Math.min(1, (overT - 0.6) / 0.4)));
     }
     drawToggles();
   }
