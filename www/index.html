@@ -12,6 +12,7 @@
       background: #0a1f45;
       touch-action: none; user-select: none; -webkit-user-select: none;
       -webkit-tap-highlight-color: transparent;
+      -webkit-touch-callout: none;
     }
     /* Portrait game frame: full screen on phones, phone-shaped on wide screens */
     canvas {
@@ -28,12 +29,20 @@
       background: #d9d4d6; color: #5a4a50; font: 600 13px system-ui, sans-serif;
     }
     #adph[hidden] { display: none; }
+    /* iPhone: keep the game clear of the notch / Dynamic Island and the home bar */
+    html.ios { --safe-t: env(safe-area-inset-top, 0px); --safe-b: env(safe-area-inset-bottom, 0px); }
+    html.ios canvas {
+      top: calc(var(--ad-h) + var(--safe-t));
+      height: calc(100vh - var(--ad-h) - var(--safe-t) - var(--safe-b));
+      width: min(100vw, calc((100vh - var(--ad-h) - var(--safe-t) - var(--safe-b)) * 0.6));
+    }
   </style>
 </head>
 <body>
-  <div id="adph" hidden>Ad banner (live ads show in the Android app)</div>
+  <div id="adph" hidden>Ad banner (live ads show in the phone app)</div>
   <canvas id="game"></canvas>
   <script src="vendor/capacitor.js"></script>
+  <script>try { if (window.Capacitor && Capacitor.getPlatform() === 'ios') document.documentElement.classList.add('ios'); } catch (e) {}</script>
   <script src="ads-config.js"></script>
   <script src="breeds.js"></script>
   <script src="ads.js"></script>

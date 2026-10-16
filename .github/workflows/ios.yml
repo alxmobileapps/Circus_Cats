@@ -1,0 +1,154 @@
+name: Build iOS app
+
+# iPhone builds need a Mac, so this runs on GitHub's macOS machines.
+# macOS minutes count 10x against the free Actions allowance, so this runs when
+# you press "Run workflow" (Actions tab -> Build iOS app), not on every push.
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - '.github/workflows/ios.yml'
+      - 'scripts/ios-*'
+      - 'www/ads-config.js'
+
+jobs:
+  build:
+    runs-on: macos-15
+    env:
+      # Optional: add these 4 repository secrets to get a signed iPhone build uploaded to TestFlight
+      APPSTORE_KEY_ID: ${{ secrets.APPSTORE_KEY_ID }}
+      APPSTORE_ISSUER_ID: ${{ secrets.APPSTORE_ISSUER_ID }}
+      APPSTORE_KEY_BASE64: ${{ secrets.APPSTORE_KEY_BASE64 }}
+      APPSTORE_KEY: ${{ secrets.APPSTORE_KEY }}   # or paste the .p8 file's text here instead of the base64 one
+      APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+
+      - name: Use the newest Xcode (App Store needs the iOS 26 SDK)
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+
+      - name: Install Capacitor + AdMob plugin
+        run: |
+          xcodebuild -version
+          npm install
+          mkdir -p www/vendor
+          cp node_modules/@capacitor/core/dist/capacitor.js www/vendor/capacitor.js
+
+      - name: Create iOS project
+        run: npx cap add ios
+
+      - name: Game setup (portrait, fullscreen, AdMob, icon, splash, version)
+        env:
+          VERSION_CODE: ${{ github.run_number }}
+        run: |
+          pip install pillow
+          python scripts/ios-setup.py
+          ruby scripts/ios-project.rb
+
+      - name: Build for iPhone simulator (Google test ads)
+        run: |
+          sed -i '' "s/testing: false/testing: true/" www/ads-config.js
+          npx cap sync ios
+          mkdir -p logs
+          xcodebuild -workspace ios/App/App.xcworkspace -scheme App -configuration Debug \
+            -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' \
+            -derivedDataPath build/sim CODE_SIGNING_ALLOWED=NO build > logs/simulator-build.log 2>&1 \
+            || { grep -E "error:|fatal error" logs/simulator-build.log | head -40; tail -n 60 logs/simulator-build.log; exit 1; }
+          mkdir -p dist
+          ditto -c -k --keepParent build/sim/Build/Products/Debug-iphonesimulator/App.app dist/circus-cats-ios-simulator-TEST-ADS.zip
+
+      - name: Test run in the simulator (screenshot)
+        continue-on-error: true
+        run: |
+          UDID=$(xcrun simctl list devices available -j | python3 -c "
+          import json, sys
+          d = json.load(sys.stdin)['devices']
+          ios = sorted((k for k in d if 'iOS' in k), key=lambda k: [int(x) for x in k.split('iOS-')[-1].split('-')])
+          for k in reversed(ios):
+              phones = [x for x in d[k] if x['name'].startswith('iPhone') and 'Pro' in x['name'] and 'Max' not in x['name']] or \
+                       [x for x in d[k] if x['name'].startswith('iPhone')]
+              if phones: print(phones[0]['udid']); break")
+          echo "Simulator: $UDID"
+          xcrun simctl boot "$UDID"
+          xcrun simctl bootstatus "$UDID" -b > /dev/null
+          xcrun simctl install "$UDID" build/sim/Build/Products/Debug-iphonesimulator/App.app
+          xcrun simctl launch "$UDID" com.alxmobileapps.circuscats
+          sleep 25
+          xcrun simctl io "$UDID" screenshot dist/ios-simulator-screenshot.png
+
+      - name: Build signed iPhone app + upload to TestFlight (real ads)
+        if: (env.APPSTORE_KEY_BASE64 != '' || env.APPSTORE_KEY != '') && env.APPSTORE_KEY_ID != '' && env.APPSTORE_ISSUER_ID != '' && env.APPLE_TEAM_ID != ''
+        run: |
+          git checkout -- www/ads-config.js
+          grep -q "testing: false" www/ads-config.js || echo "::warning::ads-config.js has testing: true - the release will show test ads"
+          grep -q "iosBannerId: ''" www/ads-config.js && echo "::warning::No iosBannerId in www/ads-config.js - this iPhone build shows no ads"
+          npx cap sync ios > logs-sync.txt 2>&1 || { sed 's/^/::error title=cap sync::/' logs-sync.txt | tail -15; exit 1; }
+          mkdir -p logs ~/.appstoreconnect/private_keys
+          KEY=~/.appstoreconnect/private_keys/AuthKey_$APPSTORE_KEY_ID.p8
+          if [ -n "$APPSTORE_KEY" ]; then printf '%s\n' "$APPSTORE_KEY" > "$KEY"; else echo "$APPSTORE_KEY_BASE64" | base64 --decode > "$KEY"; fi
+          # Clean up a key pasted from Windows/Notepad (CRLF, lost line breaks, extra spaces or quotes)
+          python3 - "$KEY" <<'PY'
+          import re, sys, textwrap
+          p = sys.argv[1]; t = open(p, encoding="utf-8-sig", errors="ignore").read()
+          body = re.sub(r"-----(BEGIN|END)[^-]*-----", "", t)
+          body = re.sub(r"[^A-Za-z0-9+/=]", "", body)
+          if len(body) < 100: sys.exit("::error title=APPSTORE_KEY::The APPSTORE_KEY secret does not look like a .p8 key")
+          open(p, "w").write("-----BEGIN PRIVATE KEY-----\n" + "\n".join(textwrap.wrap(body, 64)) + "\n-----END PRIVATE KEY-----\n")
+          print("API key file prepared (%d base64 chars)" % len(body))
+          PY
+          AUTH="-allowProvisioningUpdates -authenticationKeyPath $KEY -authenticationKeyID $APPSTORE_KEY_ID -authenticationKeyIssuerID $APPSTORE_ISSUER_ID"
+          # Archive unsigned; the export below signs it for the App Store (cloud signing, no test devices needed)
+          xcodebuild -workspace ios/App/App.xcworkspace -scheme App -configuration Release \
+            -destination 'generic/platform=iOS' -archivePath build/App.xcarchive \
+            DEVELOPMENT_TEAM=$APPLE_TEAM_ID CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO archive > logs/archive.log 2>&1 \
+            || { grep -E "error:|fatal error|No profiles|No signing|requires a provisioning" logs/archive.log | sort -u | head -15 | sed 's/^/::error title=Archive::/'; tail -n 60 logs/archive.log; exit 1; }
+          cat > build/ExportOptions.plist <<EOF
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0"><dict>
+            <key>method</key><string>app-store-connect</string>
+            <key>teamID</key><string>$APPLE_TEAM_ID</string>
+            <key>signingStyle</key><string>automatic</string>
+            <key>uploadSymbols</key><true/>
+          </dict></plist>
+          EOF
+          xcodebuild -exportArchive -archivePath build/App.xcarchive -exportPath build/export \
+            -exportOptionsPlist build/ExportOptions.plist $AUTH > logs/export.log 2>&1 \
+            || { grep -iE "error" logs/export.log | sort -u | head -15 | sed 's/^/::error title=Export::/'; tail -n 60 logs/export.log; exit 1; }
+          cp build/export/*.ipa dist/circus-cats.ipa
+          xcrun altool --upload-app -f dist/circus-cats.ipa -t ios \
+            --apiKey "$APPSTORE_KEY_ID" --apiIssuer "$APPSTORE_ISSUER_ID" > logs/upload.log 2>&1 \
+            || { grep -iE "error|fail" logs/upload.log | sort -u | head -15 | sed 's/^/::error title=Upload::/'; cat logs/upload.log; exit 1; }
+          cat logs/upload.log
+          echo "::notice title=TestFlight::Build 1.0.${{ github.run_number }} uploaded to App Store Connect"
+          rm -f "$KEY"
+
+      - name: How to get an iPhone build
+        if: env.APPSTORE_KEY_BASE64 == '' && env.APPSTORE_KEY == ''
+        run: echo "::notice::Simulator build only. Add the 4 App Store secrets (see README) to get a signed iPhone build sent to TestFlight."
+
+      - name: Upload app files
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: circus-cats-ios
+          path: dist/
+          if-no-files-found: ignore
+
+      - name: Upload build logs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: circus-cats-ios-logs
+          path: logs/
+          if-no-files-found: ignore
