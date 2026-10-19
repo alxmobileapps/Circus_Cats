@@ -68,7 +68,7 @@ cat,kitten,kitty,tiger,lion,leopard,cheetah,jump,fire,ring,hoop,tap,arcade,casua
 
 **Support URL**
 
-https://claude.ai/artifact/4NgoZrMkf1qK1CW7EESm7C  *(the game's privacy/support page)*
+https://claude.ai/artifact/4NgoZrMkf1qK1CW7EESm7C#support
 
 **Marketing URL** (optional): leave empty
 
@@ -82,7 +82,7 @@ https://claude.ai/artifact/4NgoZrMkf1qK1CW7EESm7C
 
 **Screenshots**
 
-Upload 3–10 portrait screenshots under **iPhone 6.9" Display** (1320 × 2868 or 1290 × 2796). The `ios-simulator-screenshot.png` from each "Build iOS app" run is the right size to start with.
+Upload `screenshots-6.9in/01-title.png` … `07-gameover.png` under **iPhone 6.9" Display** (1320 × 2868). App Store Connect scales them for smaller iPhones.
 
 **Build**: choose the build that the "Build iOS app" GitHub workflow uploaded to TestFlight.
 

@@ -1,0 +1,15 @@
+1. SCREEN RECORDING: attached in the Attachment field of this App Review Information section (circus-cats-app-review-recording.mp4). It starts on the Home Screen, launches the app and shows the typical user flow: the title screen, playing a run (tap = small hop, hold = big jump through the flaming rings), crashing into a ring and the Game Over screen, the Cat Shop (browsing cats and unlocking a new cat with earned coins) and playing again with the new cat. The app has no account registration or login, no user-generated content and no paid content.
+
+2. PURPOSE AND AUDIENCE: Circus Cats is a casual one-tap arcade game for players of all ages, including families and children. The player's cat runs on its own and the player taps or holds the screen to jump through rings of fire in a circus ring. It offers quick, simple and fun play sessions that anyone can learn in seconds, plus a collection goal: coins earned while playing unlock 50 characters (30 house cats and 20 big and wild cats such as the tiger and lion), each with its own look and voice.
+
+3. HOW TO USE: No account, login, setup or sample files are needed.
+- Play: launch the app and tap anywhere to start. A quick tap makes a small hop; holding makes a bigger jump. Each ring passed scores a point and earns a coin. Touching the flames or a ring's stand ends the run.
+- Game Over: shows the score and best score, with Try Again, Shop and Share Your Score buttons.
+- Cat Shop: tap CAT SHOP on the title screen (or SHOP on the Game Over card), use the arrows to browse cats and tap BUY to unlock one with coins, or USE THIS CAT to select a cat you already own.
+- Music and sound can be switched on or off with the buttons in the top-right corner.
+
+4. EXTERNAL SERVICES: Google AdMob (Google Mobile Ads SDK) shows one banner ad at the top of the screen. All ad requests are child-directed and non-personalized, the advertising identifier is not used, and the app does not request App Tracking Transparency permission. The optional Share Your Score button uses the standard iOS share sheet. No other external services are used: no accounts, servers, payment processors, analytics or AI services. Game progress (best score, coins, unlocked cats) is stored only on the device.
+
+5. REGIONAL DIFFERENCES: The app works the same in all regions. The only variation is which ads Google AdMob serves in each region.
+
+6. REGULATED INDUSTRY / THIRD-PARTY MATERIAL: Not applicable. The app is a simple game in no regulated industry, and all artwork and sounds are original to the app (no protected third-party material).
