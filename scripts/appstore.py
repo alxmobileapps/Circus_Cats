@@ -83,6 +83,12 @@ def editable_appinfo(app_id):
 
 # ---------------------------------------------------------------- status
 def status():
+    OUT["allApps"] = [{"name": x["attributes"].get("name"), "bundleId": x["attributes"].get("bundleId"), "sku": x["attributes"].get("sku")}
+                      for x in call("GET", "/apps", params={"limit": 200})["data"]]
+    try:
+        OUT["bundleIds"] = [x["attributes"]["identifier"] for x in call("GET", "/bundleIds", params={"limit": 200})["data"]]
+    except AscError as e:
+        OUT["bundleIds"] = "error " + str(e.status)
     app = app_for(BUNDLE_ID)
     if not app:
         OUT["app"] = None; OUT["errors"].append("No app record with bundle id " + BUNDLE_ID); return
