@@ -1,0 +1,138 @@
+{
+  "notes": [
+    "Build 1.0.4 (4) attached",
+    "Category: Games / Casual, Family",
+    "App info (en-US): subtitle + privacy policy URL",
+    "Age rating answers filled (all None/No, advertising Yes -> 4+)",
+    "Version texts (en-US): description, keywords, promo text, support URL",
+    "Screenshots uploaded: 7 (COMPLETE, COMPLETE, COMPLETE, COMPLETE, COMPLETE, COMPLETE, COMPLETE)",
+    "App Review info: contact copied from Circus Dogs, notes, no sign-in",
+    "SUBMITTED: review submission WAITING_FOR_REVIEW, version 1.0.4 WAITING_FOR_REVIEW"
+  ],
+  "errors": [],
+  "submitted": {
+    "submissionState": "WAITING_FOR_REVIEW",
+    "version": "1.0.4",
+    "versionState": "WAITING_FOR_REVIEW"
+  },
+  "allApps": [
+    {
+      "name": "Circus Cats",
+      "bundleId": "com.alxmobileapps.circuscats",
+      "sku": "CIRCUSCATS-IOS-001"
+    },
+    {
+      "name": "Circus Dogs",
+      "bundleId": "com.alxmobileapps.circusdogs",
+      "sku": "CIRCUSDOGS-IOS-001"
+    },
+    {
+      "name": "AlphaBlast - Word Puzzle Game",
+      "bundleId": "com.alxmobileapps.alphablast",
+      "sku": "AlphaBlast-iOS"
+    }
+  ],
+  "bundleIds": [
+    "com.alxmobileapps.circuscats",
+    "com.alxmobileapps.alphablast",
+    "com.alxmobileapps.circusdogs"
+  ],
+  "app": {
+    "id": "6824361205",
+    "name": "Circus Cats",
+    "sku": "CIRCUSCATS-IOS-001",
+    "primaryLocale": "en-US",
+    "contentRightsDeclaration": "DOES_NOT_USE_THIRD_PARTY_CONTENT"
+  },
+  "versions": [
+    {
+      "id": "a18e5394-0462-4a94-b66c-1f0724216093",
+      "version": "1.0.4",
+      "state": "WAITING_FOR_REVIEW",
+      "copyright": "2026 ALX Mobile Apps",
+      "releaseType": "AFTER_APPROVAL"
+    }
+  ],
+  "builds": [
+    {
+      "id": "ec675bbc-3fe0-4581-a7a3-1407db7c4c7b",
+      "build": "4",
+      "version": "1.0.4",
+      "state": "VALID",
+      "expired": false,
+      "uploaded": "2026-10-18T20:05:35-07:00"
+    }
+  ],
+  "appInfo": {
+    "id": "f9fb4477-1dbe-4c79-9d77-d493722ae546",
+    "attributes": {
+      "appStoreState": "WAITING_FOR_REVIEW",
+      "state": "WAITING_FOR_REVIEW",
+      "appStoreAgeRating": "FOUR_PLUS",
+      "australiaAgeRating": null,
+      "brazilAgeRating": "L",
+      "brazilAgeRatingV2": "SELF_RATED_L",
+      "franceAgeRating": null,
+      "koreaAgeRating": "ALL"
+    },
+    "primaryCategory": "GAMES",
+    "primarySubcategoryOne": "GAMES_CASUAL",
+    "primarySubcategoryTwo": "GAMES_FAMILY"
+  },
+  "appInfoLocalizations": [
+    {
+      "locale": "en-US",
+      "name": "Circus Cats",
+      "subtitle": "Jump through rings of fire!",
+      "privacyPolicyUrl": "https://claude.ai/artifact/4NgoZrMkf1qK1CW7EESm7C",
+      "privacyChoicesUrl": null,
+      "privacyPolicyText": null
+    }
+  ],
+  "ageRating": {
+    "advertising": true,
+    "alcoholTobaccoOrDrugUseOrReferences": "NONE",
+    "contests": "NONE",
+    "gambling": false,
+    "gamblingSimulated": "NONE",
+    "gunsOrOtherWeapons": "NONE",
+    "healthOrWellnessTopics": false,
+    "kidsAgeBand": null,
+    "lootBox": false,
+    "medicalOrTreatmentInformation": "NONE",
+    "messagingAndChat": false,
+    "parentalControls": false,
+    "profanityOrCrudeHumor": "NONE",
+    "ageAssurance": false,
+    "sexualContentGraphicAndNudity": "NONE",
+    "sexualContentOrNudity": "NONE",
+    "socialMedia": null,
+    "socialMediaAgeRestricted": null,
+    "horrorOrFearThemes": "NONE",
+    "matureOrSuggestiveThemes": "NONE",
+    "unrestrictedWebAccess": false,
+    "userGeneratedContent": false,
+    "violenceCartoonOrFantasy": "NONE",
+    "violenceRealisticProlongedGraphicOrSadistic": "NONE",
+    "violenceRealistic": "NONE",
+    "ageRatingOverride": "NONE",
+    "ageRatingOverrideV2": "NONE",
+    "koreaAgeRatingOverride": "NONE",
+    "gracRatingClassificationNumber": null,
+    "developerAgeRatingInfoUrl": null
+  },
+  "priceSchedule": true,
+  "availability": true,
+  "reviewSubmissions": [
+    {
+      "id": "36ac7291-9bf1-4bfe-9616-4eeeeeb9aa25",
+      "state": "WAITING_FOR_REVIEW"
+    }
+  ],
+  "dogsVersions": [
+    {
+      "version": "1.0.20",
+      "state": "WAITING_FOR_REVIEW"
+    }
+  ]
+}
