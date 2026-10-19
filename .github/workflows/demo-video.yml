@@ -1,0 +1,133 @@
+name: Demo video (App Review screen recording)
+
+# Builds a DEMO copy of the iPhone app (demo/demo-tour.js plays the game by itself:
+# title -> a run -> crash -> Game Over -> Cat Shop, buy a cat -> play again),
+# records the newest iPhone Simulator from the Home Screen, then puts the video and
+# appstore/review-notes.txt on the App Review Information of the editable version in
+# App Store Connect. The video is also pushed to the `demo-video-result` branch.
+# Runs when the `demo-video` branch is pushed, or from Actions -> Demo video -> Run workflow.
+
+on:
+  push:
+    branches: [demo-video]
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  record:
+    runs-on: macos-15
+    timeout-minutes: 45
+    env:
+      APPSTORE_KEY_ID: ${{ secrets.APPSTORE_KEY_ID }}
+      APPSTORE_ISSUER_ID: ${{ secrets.APPSTORE_ISSUER_ID }}
+      APPSTORE_KEY: ${{ secrets.APPSTORE_KEY }}
+      APPSTORE_KEY_BASE64: ${{ secrets.APPSTORE_KEY_BASE64 }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+
+      - name: Demo copy of the game (Google test ads + self-playing tour)
+        run: |
+          npm install
+          mkdir -p www/vendor
+          cp node_modules/@capacitor/core/dist/capacitor.js www/vendor/capacitor.js
+          sed -i '' "s/testing: false/testing: true/" www/ads-config.js
+          cp demo/demo-tour.js www/demo-tour.js
+          sed -i '' 's|  <script src="game.js"></script>|  <script src="game.js"></script>\
+            <script src="demo-tour.js"></script>|' www/index.html
+          grep -n "demo-tour" www/index.html
+
+      - name: iOS project + simulator build
+        env:
+          VERSION_CODE: ${{ github.run_number }}
+        run: |
+          npx cap add ios
+          pip install pillow
+          python scripts/ios-setup.py
+          ruby scripts/ios-project.rb
+          npx cap sync ios
+          mkdir -p logs
+          xcodebuild -workspace ios/App/App.xcworkspace -scheme App -configuration Debug \
+            -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' \
+            -derivedDataPath build/sim CODE_SIGNING_ALLOWED=NO build > logs/simulator-build.log 2>&1 \
+            || { grep -E "error:" logs/simulator-build.log | head -15 | sed 's/^/::error::/'; exit 1; }
+
+      - name: Record the app in the newest iPhone Simulator
+        run: |
+          mkdir -p out
+          DEVICE=$(xcrun simctl list devices available -j | python3 -c '
+          import json,sys,re
+          d=json.load(sys.stdin)["devices"]
+          def ver(rt):
+              m=re.search(r"iOS-(\d+)-(\d+)", rt); return (int(m.group(1)),int(m.group(2))) if m else (0,0)
+          for rt in sorted([rt for rt in d if "iOS" in rt], key=ver, reverse=True):
+              phones=[x for x in d[rt] if x["name"].startswith("iPhone")]
+              best=[x for x in phones if "Pro Max" in x["name"]] or phones
+              if best:
+                  print(best[-1]["udid"]); break')
+          xcrun simctl list devices | grep "$DEVICE" | tee out/device.txt
+          xcrun simctl boot "$DEVICE"
+          xcrun simctl bootstatus "$DEVICE" -b
+          xcrun simctl status_bar "$DEVICE" override --time "9:41" --batteryState charged --batteryLevel 100 --wifiBars 3 --cellularBars 4 || true
+          xcrun simctl install "$DEVICE" build/sim/Build/Products/Debug-iphonesimulator/App.app
+          sleep 8
+          xcrun simctl io "$DEVICE" recordVideo --codec=h264 --force out/demo.mov &
+          REC=$!
+          sleep 6          # video starts on the Home Screen and shows the app launch
+          xcrun simctl launch "$DEVICE" com.alxmobileapps.circuscats | tee out/launch.txt
+          sleep 95
+          xcrun simctl io "$DEVICE" screenshot out/end-frame.png || true
+          kill -INT $REC
+          wait $REC || true
+          xcrun simctl spawn "$DEVICE" log show --info --debug --last 3m --style compact --predicate 'eventMessage CONTAINS "DemoTour"' 2>/dev/null | tail -n 30 > out/tour-log.txt || true
+          cat out/tour-log.txt
+          grep -q "DemoTour: done" out/tour-log.txt || echo "::warning::The demo tour did not log 'done' - check the video"
+          ls -la out
+
+      - name: Make the MP4
+        run: |
+          if ! command -v ffmpeg >/dev/null; then brew install ffmpeg >/dev/null 2>&1 || true; fi
+          ffmpeg -y -loglevel error -i out/demo.mov -vf "scale=-2:1280" -c:v libx264 -preset veryfast -crf 26 -pix_fmt yuv420p -an out/circus-cats-app-review-recording.mp4
+          rm -f out/demo.mov
+          for t in 3 12 30 50 70 90; do ffmpeg -y -loglevel error -ss $t -i out/circus-cats-app-review-recording.mp4 -frames:v 1 -vf scale=-2:640 out/frame-$t.jpg || true; done
+          ls -la out
+
+      - name: Push the video to the demo-video-result branch
+        if: always()
+        run: |
+          OUT="$RUNNER_TEMP/demo-publish"
+          mkdir -p out && rm -rf "$OUT" && cp -R out "$OUT"
+          echo "run ${{ github.run_number }} for ${{ github.sha }}" > "$OUT/RUN.txt"
+          cd "$OUT"
+          git init -q -b demo-video-result
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -qm "Demo video for ${{ github.sha }}"
+          git push -qf "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" demo-video-result
+
+      - name: Put notes + recording on App Review Information (App Store Connect)
+        if: env.APPSTORE_KEY_ID != ''
+        run: |
+          pip install --quiet pyjwt cryptography requests
+          KEY="$RUNNER_TEMP/AuthKey.p8"
+          if [ -n "$APPSTORE_KEY" ]; then printf '%s\n' "$APPSTORE_KEY" > "$KEY"; else echo "$APPSTORE_KEY_BASE64" | base64 --decode > "$KEY"; fi
+          python3 - "$KEY" <<'PY'
+          import re, sys, textwrap
+          p = sys.argv[1]; t = open(p, encoding="utf-8-sig", errors="ignore").read()
+          body = re.sub(r"-----(BEGIN|END)[^-]*-----", "", t)
+          body = re.sub(r"[^A-Za-z0-9+/=]", "", body)
+          open(p, "w").write("-----BEGIN PRIVATE KEY-----\n" + "\n".join(textwrap.wrap(body, 64)) + "\n-----END PRIVATE KEY-----\n")
+          PY
+          ASC_KEY_PATH="$KEY" python3 scripts/appstore-review.py out/circus-cats-app-review-recording.mp4 appstore/review-notes.txt
+          rm -f "$KEY"

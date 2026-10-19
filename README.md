@@ -51,6 +51,49 @@ Everything runs on GitHub; nothing needs to be installed on your computer.
    - `playstore-icon-512.png`: the icon for the Play Console
    - `circus-cats-release.aab` / `.apk`: only when the signing secrets below are set
 
+## How the iPhone (iOS) app is built
+
+Same game, same `www/` folder, same assets. iPhone apps can only be built on a Mac, so GitHub's macOS machines do it.
+
+1. Open **Actions → Build iOS app → Run workflow** (it runs only when you press the button, because
+   macOS minutes count 10x against the free GitHub Actions allowance).
+2. It wraps the game with Capacitor (`npx cap add ios`), then runs `scripts/ios-setup.py` + `scripts/ios-project.rb`
+   (portrait, fullscreen with auto-hiding home bar, AdMob app id, app icon + splash from `resources/app-icon.png`,
+   iPhone-only, version number).
+3. Open the run → **Artifacts → `circus-cats-ios`**:
+   - `circus-cats-ios-simulator-TEST-ADS.zip`: the app for the iPhone simulator (Mac or a web simulator like Appetize.io)
+   - `ios-simulator-screenshot.png`: a screenshot of the game running in the simulator
+   - `circus-cats.ipa`: only when the App Store secrets below are set; it is also sent to **TestFlight** automatically
+
+### iPhone ads (AdMob)
+
+AdMob needs a separate iOS app: **AdMob → Apps → Add app → iOS → Circus Cats**, then create a **Banner** ad unit.
+Paste both ids into `www/ads-config.js` as `iosAppId` and `iosBannerId`. Until then the iPhone app shows no ads.
+
+### Signed iPhone build + TestFlight (optional)
+
+Needs an **Apple Developer Program** membership (US$99/year).
+
+1. In **App Store Connect → Apps → +**, create the app with bundle ID `com.alxmobileapps.circuscats`.
+2. In **App Store Connect → Users and Access → Integrations → App Store Connect API**, create a key with **Admin** access
+   and download the `.p8` file (you can only download it once).
+3. Add these repository secrets:
+
+| Secret | Value |
+|---|---|
+| `APPSTORE_KEY_ID` | the key's Key ID |
+| `APPSTORE_ISSUER_ID` | the Issuer ID shown above the keys list |
+| `APPSTORE_KEY` | open the `.p8` file as text and paste everything (including the BEGIN/END lines) |
+| `APPLE_TEAM_ID` | your Team ID (developer.apple.com → Membership details) |
+
+Signing certificates and profiles are created automatically. Each run's build appears in TestFlight
+a few minutes after the upload. When the game is live, paste its App Store link into `APP_STORE_URL` in `www/game.js`
+so shared scores link to it.
+
+Everything to fill in on App Store Connect (texts, keywords, privacy answers, age rating) is in **`appstore/listing.md`**.
+
+Note: Apple's **Kids** category doesn't allow normal third-party ads, so list the iPhone game under **Games** instead.
+
 ## Signed release for Google Play (optional)
 
 Add these repository secrets (Settings → Secrets and variables → Actions):

@@ -1403,7 +1403,13 @@
 
 
   // ---------- Share score ----------
-  const STORE_URL = 'https://play.google.com/store/apps/details?id=com.alxmobileapps.circuscats';
+  const IS_IOS = !!(window.Capacitor && window.Capacitor.getPlatform && window.Capacitor.getPlatform() === 'ios');
+  const PLAY_URL = 'https://play.google.com/store/apps/details?id=com.alxmobileapps.circuscats';
+  // iPhone: paste the App Store link here once the game is live (e.g. https://apps.apple.com/app/id1234567890).
+  // Until then, scores shared from the iPhone app go out without a link (Apple rejects apps that point to Google Play).
+  const APP_STORE_URL = '';
+  const STORE_URL = IS_IOS ? APP_STORE_URL : PLAY_URL;
+  const withLink = t => STORE_URL ? t + ' ' + STORE_URL : t;
   const PRIVACY_URL = 'https://claude.ai/artifact/4NgoZrMkf1qK1CW7EESm7C';
   function shareText() {
     const cat = curBreed().name;
@@ -1441,7 +1447,7 @@
         try {
           const w = await FS.writeFile({ path: 'circus-cats-score.png', data: shareImage().split(',')[1], directory: 'CACHE' });
           await P.chooser({ packages: [].concat(APP_PKGS.facebook, APP_PKGS.tiktok, APP_PKGS.x, APP_PKGS.instagram, APP_PKGS.whatsapp),
-                            text: shareText() + ' ' + STORE_URL, path: w.uri, title: 'Share your score' });
+                            text: withLink(shareText()), path: w.uri, title: 'Share your score' });
           return;
         } catch (e) { /* fall back to the plain share menu */ }
       }
@@ -1465,7 +1471,7 @@
       ctx.fillStyle = 'rgba(0,0,0,0.25)'; ctx.beginPath(); ctx.ellipse(6, 2, 30, 5, 0, 0, Math.PI * 2); ctx.fill();
       drawCat(curBreed(), 0, 0, 'run'); ctx.restore();
       text('Can you beat me?', S / 2, 900, 60, '#fff');
-      text('Get it on Google Play', S / 2, 990, 44, '#ffe38a');
+      text(!IS_IOS ? 'Get it on Google Play' : APP_STORE_URL ? 'Download on the App Store' : 'Play Circus Cats!', S / 2, 990, 44, '#ffe38a');
     } finally { ctx = saved; }
     return off.toDataURL('image/png');
   }
@@ -1479,20 +1485,20 @@
           const w = await FS.writeFile({ path: 'circus-cats-score.png', data: shareImage().split(',')[1], directory: 'CACHE' });
           files = [w.uri];
         } catch (e) { files = undefined; }
-        await Share.share({ title: 'Circus Cats', text: text + ' ' + STORE_URL, files, dialogTitle: 'Share your score' });
+        await Share.share({ title: 'Circus Cats', text: withLink(text), files, dialogTitle: 'Share your score' });
         return;
       } catch (e) {
-        try { await Share.share({ title: 'Circus Cats', text: text + ' ' + STORE_URL, dialogTitle: 'Share your score' }); return; } catch (e2) { /* fall through */ }
+        try { await Share.share({ title: 'Circus Cats', text: withLink(text), dialogTitle: 'Share your score' }); return; } catch (e2) { /* fall through */ }
       }
     }
-    if (navigator.share) { try { await navigator.share({ title: 'Circus Cats', text, url: STORE_URL }); return; } catch (e) { /* cancelled */ } }
-    try { await navigator.clipboard.writeText(text + ' ' + STORE_URL); flashOver('Copied! Paste it anywhere.'); } catch (e) { flashOver('Sharing is not available here'); }
+    if (navigator.share) { try { await navigator.share(STORE_URL ? { title: 'Circus Cats', text, url: STORE_URL } : { title: 'Circus Cats', text }); return; } catch (e) { /* cancelled */ } }
+    try { await navigator.clipboard.writeText(withLink(text)); flashOver('Copied! Paste it anywhere.'); } catch (e) { flashOver('Sharing is not available here'); }
   }
 
   // ---------- "More games" cross-promo card (game over screen) ----------
   // Shows Circus Dogs and Circus Fish in turn, above the Game Over card. Tapping it opens the
   // game's Play Store page. Clearly marked as an ad (Google Play Families policy).
-  const IS_IOS = !!(window.Capacitor && window.Capacitor.getPlatform && window.Capacitor.getPlatform() === 'ios');
+  // Not shown on iPhone (IS_IOS is set above): Apple rejects links to Google Play.
   const PROMOS = [
     { name: 'CIRCUS DOGS', url: 'https://play.google.com/store/apps/details?id=com.alxmobileapps.circusdogs',
       bg1: '#b3122e', bg2: '#f3e3c3', animal: 'dog' },
@@ -1699,7 +1705,7 @@
     }
     if (state === 'over') {
       const k = Math.min(1, overT / 0.35), e = 1 - Math.pow(1 - k, 3);
-      const pc = Math.max(MID() - 60, T() + 84 + 158 + 18 + 150);   // leaves room for the promo card above
+      const pc = IS_IOS ? MID() - 60 : Math.max(MID() - 60, T() + 84 + 158 + 18 + 150);   // leaves room for the promo card above (Android only)
       ctx.save(); ctx.translate(viewW / 2, pc); ctx.scale(0.7 + 0.3 * e, 0.7 + 0.3 * e); ctx.translate(-viewW / 2, -pc);
       ctx.globalAlpha = e;
       const p = panel(480, 316, pc - 150);

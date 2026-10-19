@@ -1,4 +1,4 @@
-/* AdMob banner at the top of the screen (Android app only).
+/* AdMob banner at the top of the screen (Android and iPhone apps).
  * The game area moves down by the banner's height so nothing is hidden behind it.
  * In a normal browser a grey placeholder shows where the banner will be. */
 (function () {
@@ -24,9 +24,12 @@
 
   const reg = (window.capacitorExports && window.capacitorExports.registerPlugin) || C.registerPlugin;
   const AdMob = (C.Plugins && C.Plugins.AdMob) || (reg && reg('AdMob'));
-  if (!AdMob || !cfg.bannerId) return;
-  // Google's sample banner id for test builds (never counts as a real impression)
-  const adId = cfg.testing ? 'ca-app-pub-3940256099942544/9214589741' : cfg.bannerId;
+  const isIOS = !!(C.getPlatform && C.getPlatform() === 'ios');
+  // Google's sample banner ids for test builds (never count as a real impression)
+  const adId = cfg.testing
+    ? (isIOS ? 'ca-app-pub-3940256099942544/2435281174' : 'ca-app-pub-3940256099942544/9214589741')
+    : (isIOS ? cfg.iosBannerId : cfg.bannerId);
+  if (!AdMob || !adId) return;
 
   reserve(0);
   try {
@@ -39,7 +42,8 @@
         initializeForTesting: !!cfg.testing,
         tagForChildDirectedTreatment: !!cfg.childDirected,
         tagForUnderAgeOfConsent: !!cfg.childDirected,
-        maxAdContentRating: cfg.childDirected ? 'General' : undefined
+        maxAdContentRating: cfg.childDirected ? 'General' : undefined,
+        requestTrackingAuthorization: false   // iPhone: never show the "allow tracking" popup (kids audience)
       });
     } catch (e) { /* keep going */ }
     try { // Google consent form (only shows where the law requires it, e.g. EU)
