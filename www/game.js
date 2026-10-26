@@ -1699,7 +1699,7 @@
     }
     if (state === 'over') {
       const k = Math.min(1, overT / 0.35), e = 1 - Math.pow(1 - k, 3);
-      const pc = Math.max(MID() - 60, T() + 84 + 158 + 18 + 150);   // leaves room for the promo card above
+      const pc = MID();
       ctx.save(); ctx.translate(viewW / 2, pc); ctx.scale(0.7 + 0.3 * e, 0.7 + 0.3 * e); ctx.translate(-viewW / 2, -pc);
       ctx.globalAlpha = e;
       const p = panel(480, 316, pc - 150);
@@ -1717,7 +1717,7 @@
         button('SHARE YOUR SCORE', viewW / 2 - 150, p.y + 254, 300, 46, shareScore, { size: 18, color: '#6f9cf0' });
         if (overMsgT > 0) text(overMsg, viewW / 2, p.y + 330, 16, '#fff3a0');
       }
-      drawPromo(Math.max(0, Math.min(1, (overT - 0.6) / 0.4)));
+      // No cross-promo card: Families policy allows only one ad (the AdMob banner) per screen.
     }
     drawToggles();
   }
