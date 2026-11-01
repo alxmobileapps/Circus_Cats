@@ -2,8 +2,7 @@
 
 A one-tap circus game (same gameplay as Circus Dogs). The cat runs on its own. **Quick tap = small hop, hold longer = higher jump.**
 Rings come in different sizes, heights and spacing, and they get smaller as you score.
-Sometimes two low rings come very close together; after 10 rings, twin rings appear (one jump through both = +2);
-after 20 a circus ball rolls in; after 30 some rings move up and down; after 40 two balls can come bouncing together. Touch the flames, jump over the ring,
+From score 5, all obstacle variants can appear: close low-ring pairs, twin rings (one jump through both = +2), moving rings, rolling balls, and bouncing-ball pairs. Scores 0–4 use single stationary rings only. Touch the flames, jump over the ring,
 or run into its stand and the cat cries. Game over, then try again.
 
 - Every cat makes its own sound on each jump (meow, "mrrp" chirp, snarl, or a big-cat roar) and cries on game over.
