@@ -390,9 +390,9 @@
   let lastHit = null;
   let rings = [], parts = [], tears = [], popups = [];
   let balls = [], ballTimer = 4;
-  const BALL_R = 24, BALL_EXTRA = 140;     // rolling circus ball (from score 20), rolls a bit faster than the rings
+  const BALL_R = 24, BALL_EXTRA = 140;     // rolling circus ball (from score 5), rolls a bit faster than the rings
   const ballV = () => speed + BALL_EXTRA;
-  const BOUNCE_A = 30, BOUNCE_P = 0.45;      // bouncing pair (from score 40): hop height (px) and seconds per bounce
+  const BOUNCE_A = 30, BOUNCE_P = 0.45;      // bouncing pair (from score 5): hop height (px) and seconds per bounce
   let ballPair = false;
   const ballH = b => { if (!b.bn) return 0; const u = ((time + b.ph) % BOUNCE_P) / BOUNCE_P; return 4 * BOUNCE_A * u * (1 - u); };
   const dog = { x: 170, y: GY, vy: 0, air: false, jt: 0, h0: 0, v0: 0, holding: false };
@@ -424,21 +424,21 @@
   function spawnGroup(x) {
     const n0 = rings.length;
     const roll = Math.random();
-    if (score >= 10 && roll < 0.25) {
+    if (score >= 5 && roll < 0.25) {
       // TWIN RINGS: two rings side by side, jump through both in one go
       const R = rand(61, 67), hC = rand(160, 195), sep = rand(64, 76);   // a bit bigger than singles
       const a = makeRing(x, R, hC), b = makeRing(x + sep, R, hC);
       a.twin = b.twin = true; b.twinEnd = true;
       rings.push(a, b);
-    } else if (score >= 2 && roll < 0.47) {
+    } else if (score >= 5 && roll < 0.47) {
       // VERY CLOSE PAIR: two low rings right after each other (two quick taps)
       const R1 = rand(49, 54), R2 = rand(49, 54);   // only slightly bigger than single rings
       rings.push(makeRing(x, R1, rand(lowest(R1), lowest(R1) + 18)));
       rings.push(makeRing(x + speed * rand(0.58, 0.72) + 50, R2, rand(lowest(R2), lowest(R2) + 18)));
     } else {
       const r = makeRing(x);
-      if (score >= 30 && Math.random() < 0.4) {
-        // MOVING RING (from score 30): glides up and down, always within the heights the dog can reach
+      if (score >= 5 && Math.random() < 0.4) {
+        // MOVING RING (from score 5): glides up and down, always within the heights the dog can reach
         const lo = lowest(r.R), hi = 195;
         if (hi - lo >= 40) {
           r.mv = { c: (lo + hi) / 2, a: (hi - lo) / 2, w: Math.PI * 2 / rand(1.7, 2.5), p: rand(0, Math.PI * 2) };
@@ -457,11 +457,11 @@
     return balls.some(b => Math.abs(tr - (b.x - dogX()) / ballV()) < 0.8);
   }
   function maybeSpawnBall(dt) {
-    if (score < 20 || balls.length) return;
+    if (score < 5 || balls.length) return;
     ballTimer -= dt;
     if (ballTimer > 0) return;
     const x = viewW + 60, tb = (x - dogX()) / ballV();
-    const pair = score > 40 && ballPair, tEnd = tb + (pair ? BOUNCE_P : 0);
+    const pair = score >= 5 && ballPair, tEnd = tb + (pair ? BOUNCE_P : 0);
     // wait for a moment when no ring is about to reach the dog together with the ball(s)
     if (rings.some(r => { const tr = (r.x - dogX()) / speed; return tr > -0.5 && tr > tb - 0.8 && tr < tEnd + 0.8; })) return;
     if (pair) {
@@ -475,7 +475,7 @@
 
   function reset() {
     score = 0; speed = 280; dist = 0; newBest = false; runCoins = 0;
-    rings = []; parts = []; tears = []; popups = []; balls = []; ballTimer = rand(2, 5); ballPair = false;
+    rings = []; parts = []; tears = []; popups = []; balls = []; ballTimer = rand(2, 5); ballPair = Math.random() < 0.4;
     dog.x = dogX(); dog.y = GY; dog.vy = 0; dog.air = false; dog.holding = false;
     spawnGroup(dog.x + viewW + 120);
   }
