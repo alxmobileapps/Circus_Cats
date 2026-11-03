@@ -87,8 +87,24 @@
         musicBus = actx.createGain(); musicBus.gain.value = musicOn ? MUSIC_VOL : 0; musicBus.connect(actx.destination);
         preloadBreed(curBreed()); preloadCatSounds();
       }
-      if (actx.state === 'suspended') actx.resume();
+      if (actx.state !== 'running') {   // 'suspended', or iOS 'interrupted' after the app was backgrounded
+        actx.resume().catch(() => {});
+        const c = actx;
+        setTimeout(() => { if (actx === c && c.state !== 'running') rebuildAudio(); }, 700);
+      }
     } catch (e) { actx = null; }
+  }
+  // iOS can leave the audio context dead after the app was in the background: build a fresh one
+  let rebuilding = false;
+  function rebuildAudio() {
+    if (rebuilding || document.hidden) return;
+    rebuilding = true;
+    try { if (actx) actx.close().catch(() => {}); } catch (e) {}
+    actx = null; noiseBuf = null; sfxBus = null; musicBus = null;
+    for (const k in buffers) delete buffers[k];
+    ensureAudio();
+    if (actx && musicActive) { mStep = 0; mNext = actx.currentTime + 0.08; }
+    setTimeout(() => { rebuilding = false; }, 1000);
   }
 
   // Sound files from breeds.js (optional) — decoded once, reused
@@ -545,8 +561,11 @@
     if (document.hidden) {
       if (state === 'play') { state = 'paused'; musicActive = false; }
       if (actx) actx.suspend().catch(() => {});
-    } else if (actx) actx.resume().catch(() => {});
+    } else wakeAudio();
   });
+  function wakeAudio() { if (actx) { actx.resume().catch(() => {}); setTimeout(() => { if (actx && actx.state !== 'running') actx.resume().catch(() => {}); }, 300); } }
+  window.addEventListener('pageshow', wakeAudio);
+  window.addEventListener('focus', wakeAudio);
 
   // ---------- Collision helpers ----------
   function circHit(ax, ay, ar, bx, by, br) { const dx = ax - bx, dy = ay - by; return dx * dx + dy * dy < (ar + br) * (ar + br); }
