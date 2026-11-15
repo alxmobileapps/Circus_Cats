@@ -1,0 +1,159 @@
+{
+  "notes": [],
+  "errors": [],
+  "allApps": [
+    {
+      "name": "TapTap Circus",
+      "bundleId": "com.alxmobileapps.circusdogs",
+      "sku": "CIRCUSDOGS-IOS-001"
+    },
+    {
+      "name": "Circus Fish",
+      "bundleId": "com.alxmobileapps.circusfish",
+      "sku": "circusfish"
+    },
+    {
+      "name": "Circus Cats",
+      "bundleId": "com.alxmobileapps.circuscats",
+      "sku": "CIRCUSCATS-IOS-001"
+    },
+    {
+      "name": "AlphaBlast - Word Puzzle Game",
+      "bundleId": "com.alxmobileapps.alphablast",
+      "sku": "AlphaBlast-iOS"
+    }
+  ],
+  "bundleIds": [
+    "com.alxmobileapps.circusfish",
+    "com.alxmobileapps.circuscats",
+    "com.alxmobileapps.alphablast",
+    "com.alxmobileapps.circusdogs"
+  ],
+  "app": {
+    "id": "6824361205",
+    "name": "Circus Cats",
+    "sku": "CIRCUSCATS-IOS-001",
+    "primaryLocale": "en-US",
+    "contentRightsDeclaration": "DOES_NOT_USE_THIRD_PARTY_CONTENT"
+  },
+  "versions": [
+    {
+      "id": "a18e5394-0462-4a94-b66c-1f0724216093",
+      "version": "1.0.4",
+      "state": "REJECTED",
+      "copyright": "2026 ALX Mobile Apps",
+      "releaseType": "AFTER_APPROVAL"
+    }
+  ],
+  "builds": [
+    {
+      "id": "c3a00d17-0790-4f5a-b68d-fcf369cfd588",
+      "build": "5",
+      "version": "1.0.5",
+      "state": "VALID",
+      "expired": false,
+      "uploaded": "2026-11-03T00:14:11-08:00"
+    },
+    {
+      "id": "ec675bbc-3fe0-4581-a7a3-1407db7c4c7b",
+      "build": "4",
+      "version": "1.0.4",
+      "state": "VALID",
+      "expired": false,
+      "uploaded": "2026-10-18T20:05:35-07:00"
+    }
+  ],
+  "appInfo": {
+    "id": "f9fb4477-1dbe-4c79-9d77-d493722ae546",
+    "attributes": {
+      "appStoreState": "REJECTED",
+      "state": "REJECTED",
+      "appStoreAgeRating": "FOUR_PLUS",
+      "australiaAgeRating": null,
+      "brazilAgeRating": "L",
+      "brazilAgeRatingV2": "SELF_RATED_L",
+      "franceAgeRating": null,
+      "koreaAgeRating": "ALL"
+    },
+    "primaryCategory": "GAMES",
+    "primarySubcategoryOne": "GAMES_CASUAL",
+    "primarySubcategoryTwo": "GAMES_FAMILY"
+  },
+  "appInfoLocalizations": [
+    {
+      "locale": "en-US",
+      "name": "Circus Cats",
+      "subtitle": "Jump through rings of fire!",
+      "privacyPolicyUrl": "https://claude.ai/artifact/4NgoZrMkf1qK1CW7EESm7C",
+      "privacyChoicesUrl": null,
+      "privacyPolicyText": null
+    }
+  ],
+  "ageRating": {
+    "advertising": true,
+    "alcoholTobaccoOrDrugUseOrReferences": "NONE",
+    "contests": "NONE",
+    "gambling": false,
+    "gamblingSimulated": "NONE",
+    "gunsOrOtherWeapons": "NONE",
+    "healthOrWellnessTopics": false,
+    "kidsAgeBand": null,
+    "lootBox": false,
+    "medicalOrTreatmentInformation": "NONE",
+    "messagingAndChat": false,
+    "parentalControls": false,
+    "profanityOrCrudeHumor": "NONE",
+    "ageAssurance": false,
+    "sexualContentGraphicAndNudity": "NONE",
+    "sexualContentOrNudity": "NONE",
+    "socialMedia": null,
+    "socialMediaAgeRestricted": null,
+    "horrorOrFearThemes": "NONE",
+    "matureOrSuggestiveThemes": "NONE",
+    "unrestrictedWebAccess": false,
+    "userGeneratedContent": false,
+    "violenceCartoonOrFantasy": "NONE",
+    "violenceRealisticProlongedGraphicOrSadistic": "NONE",
+    "violenceRealistic": "NONE",
+    "ageRatingOverride": "NONE",
+    "ageRatingOverrideV2": "NONE",
+    "koreaAgeRatingOverride": "NONE",
+    "gracRatingClassificationNumber": null,
+    "developerAgeRatingInfoUrl": null
+  },
+  "versionLocalizations": [
+    {
+      "description": "Step right up to the greatest show under the big blue tent! ",
+      "locale": "en-US",
+      "keywords": "cat,kitten,kitty,tiger,lion,leopard,cheetah,jump,fire,ring,hoop,tap,arcade,casual,endless,runner,pet",
+      "marketingUrl": null,
+      "promotionalText": "New cats to unlock and new tricks in the ring! Twin rings, gliding rings and bouncing circus balls, and 50 cats and Big & Wild Cats to collect. How far can your cat go?",
+      "supportUrl": "https://claude.ai/artifact/4NgoZrMkf1qK1CW7EESm7C#support",
+      "whatsNew": null,
+      "screenshotSets": {
+        "APP_IPHONE_67": 7
+      }
+    }
+  ],
+  "versionBuild": "4",
+  "reviewDetail": {
+    "contactFilled": true,
+    "demoAccountRequired": false,
+    "notesLength": 2576,
+    "attachments": []
+  },
+  "priceSchedule": true,
+  "availability": true,
+  "reviewSubmissions": [
+    {
+      "id": "36ac7291-9bf1-4bfe-9616-4eeeeeb9aa25",
+      "state": "COMPLETE"
+    }
+  ],
+  "dogsVersions": [
+    {
+      "version": "1.1.0",
+      "state": "WAITING_FOR_REVIEW"
+    }
+  ]
+}
