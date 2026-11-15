@@ -328,10 +328,29 @@ def submit(app_id, version_id):
     OUT["submitted"] = {"submissionState": st, "version": v["versionString"], "versionState": v.get("appStoreState")}
 
 
+def withdraw(bundles):
+    """Cancel every open review submission (waiting / in review / unresolved) of the given apps."""
+    for bundle in bundles:
+        app = app_for(bundle)
+        if not app:
+            note(f"WITHDRAW: no app for {bundle}"); continue
+        subs = call("GET", "/reviewSubmissions", params={"filter[app]": app["id"], "filter[platform]": "IOS", "limit": 20})["data"]
+        note(f"WITHDRAW {bundle}: submissions " + ", ".join(f"{s['id']}={s['attributes'].get('state')}" for s in subs))
+        for s in subs:
+            st = s["attributes"].get("state")
+            if st in ("WAITING_FOR_REVIEW", "IN_REVIEW", "UNRESOLVED_ISSUES", "READY_FOR_REVIEW"):
+                patch("reviewSubmissions", s["id"], {"canceled": True})
+                time.sleep(3)
+                st2 = call("GET", f"/reviewSubmissions/{s['id']}")["data"]["attributes"].get("state")
+                note(f"WITHDRAWN {bundle}: submission {s['id']} {st} -> {st2}")
+
+
 if __name__ == "__main__":
     os.makedirs("out", exist_ok=True)
     action = sys.argv[1]
     try:
+        if action == "withdraw":
+            withdraw(["circuscats", "com.alxmobileapps.circusfish"])
         if action in ("fill", "submit"):
             ids = fill()
             if action == "submit":
